@@ -15,11 +15,12 @@ import {
   Image,
   ActivityIndicator,
   TextInput,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { api } from '../lib/api';
+import { api, fixImageUrl } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/colors';
 import { generateAvatarUrl } from '../utils/avatarHelper';
@@ -58,44 +59,6 @@ const STORY_CARD_HEIGHT = Math.round(STORY_CARD_WIDTH * 1.6);
 
 // Curated, high-quality story images - perfect for campus life and student activities
 const DEFAULT_STORY_IMAGE = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop';
-const STORY_CARDS = [
-  {
-    title: 'Campus Life',
-    imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop', // Students on campus
-  },
-  {
-    title: 'Study Group',
-    imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200&auto=format&fit=crop', // Students studying together
-  },
-  {
-    title: 'Tech Lab',
-    imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=1200&auto=format&fit=crop', // Students coding/tech
-  },
-  {
-    title: 'Graduation',
-    imageUrl: 'https://images.unsplash.com/photo-1627556704302-624286467c65?q=80&w=1200&auto=format&fit=crop', // Perfect graduation celebration - students throwing caps
-  },
-  {
-    title: 'Library',
-    imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=1200&auto=format&fit=crop', // University library
-  },
-  {
-    title: 'Team Project',
-    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop', // Team working together
-  },
-  {
-    title: 'Workshop',
-    imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1200&auto=format&fit=crop', // Workshop/presentation
-  },
-  {
-    title: 'Campus Event',
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop', // Campus event/gathering
-  },
-  {
-    title: 'Friends',
-    imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop', // Friends together
-  },
-];
 
 export default function FeedScreen({ navigation }) {
   const { user, profile, isDemo, canCreate } = useAuth();
@@ -111,6 +74,8 @@ export default function FeedScreen({ navigation }) {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [storyViewerVisible, setStoryViewerVisible] = useState(false);
+  const [selectedStory, setSelectedStory] = useState(null);
   
   const generatedAvatar = generateAvatarUrl(profile?.full_name || user?.email || 'User');
   const currentUserAvatar = profile?.avatar_url || (generatedAvatar.includes('format=svg') ? generatedAvatar.replace('format=svg', 'format=png') : generatedAvatar);
@@ -235,6 +200,16 @@ export default function FeedScreen({ navigation }) {
       console.error('[FeedScreen] Error creating story:', error);
       Alert.alert('Error', `Could not create story: ${error.message}`);
     }
+  };
+
+  const handleStoryPress = (story) => {
+    setSelectedStory(story);
+    setStoryViewerVisible(true);
+  };
+
+  const closeStoryViewer = () => {
+    setStoryViewerVisible(false);
+    setSelectedStory(null);
   };
 
   const getTimeAgo = (timestamp) => {
@@ -431,7 +406,7 @@ export default function FeedScreen({ navigation }) {
           >
             {item.user.avatarUrl && !item.user.avatarUrl.includes('ui-avatars.com') ? (
               <Image 
-                source={{ uri: item.user.avatarUrl }}
+                source={{ uri: fixImageUrl(item.user.avatarUrl) }}
                 style={styles.avatarImage}
                 resizeMode="cover"
               />
@@ -475,7 +450,7 @@ export default function FeedScreen({ navigation }) {
             >
               {item.sharedPost.user.avatarUrl && !item.sharedPost.user.avatarUrl.includes('ui-avatars.com') ? (
                 <Image 
-                  source={{ uri: item.sharedPost.user.avatarUrl }}
+                  source={{ uri: fixImageUrl(item.sharedPost.user.avatarUrl) }}
                   style={styles.sharedPostAvatar}
                   resizeMode="cover"
                 />
@@ -504,7 +479,7 @@ export default function FeedScreen({ navigation }) {
 
         {/* Optional Image (only if not a shared post) */}
         {item.imageUrl && !item.sharedPost ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.postImage} resizeMode="cover" />
+          <Image source={{ uri: fixImageUrl(item.imageUrl) }} style={styles.postImage} resizeMode="cover" />
         ) : null}
 
         {/* Engagement Stats - Facebook Style */}
@@ -735,7 +710,7 @@ export default function FeedScreen({ navigation }) {
                       {profile?.avatar_url ? (
                         <View style={styles.createStoryAvatarContainer}>
                           <Image 
-                            source={{ uri: profile.avatar_url }} 
+                            source={{ uri: fixImageUrl(profile.avatar_url) }} 
                             style={styles.createStoryAvatar}
                             resizeMode="cover"
                           />
@@ -760,6 +735,7 @@ export default function FeedScreen({ navigation }) {
                       key={`story-${userStory.user.id}-${idx}`} 
                       style={styles.storyCard}
                       activeOpacity={0.8}
+                      onPress={() => handleStoryPress(userStory)}
                     >
                       <Image 
                         source={{ uri: userStory.stories[0]?.image_url || DEFAULT_STORY_IMAGE }} 
@@ -768,7 +744,7 @@ export default function FeedScreen({ navigation }) {
                       <View style={styles.storyAvatarRing}>
                         {userStory.user.avatar_url ? (
                           <Image 
-                            source={{ uri: userStory.user.avatar_url }} 
+                            source={{ uri: fixImageUrl(userStory.user.avatar_url) }} 
                             style={styles.storyAvatar}
                           />
                         ) : (
@@ -781,14 +757,6 @@ export default function FeedScreen({ navigation }) {
                         {userStory.user.name}
                       </Text>
                     </TouchableOpacity>
-                  ))}
-                  
-                  {/* Static sample story cards (fallback if no stories) */}
-                  {stories.length === 0 && STORY_CARDS.map((s, idx) => (
-                    <View key={`story-${idx}`} style={styles.storyCard}>
-                      <Image source={{ uri: s.imageUrl || DEFAULT_STORY_IMAGE }} style={styles.storyImage} />
-                      <Text style={styles.storyName} numberOfLines={1}>{s.title}</Text>
-                    </View>
                   ))}
                 </ScrollView>
               </View>
@@ -900,7 +868,7 @@ export default function FeedScreen({ navigation }) {
                 renderItem={({ item }) => (
                   <View style={styles.commentItem}>
                     <Image 
-                      source={{ uri: item.profiles?.avatar_url || generateAvatarUrl(item.profiles?.full_name || 'User') }} 
+                      source={{ uri: fixImageUrl(item.profiles?.avatar_url) || generateAvatarUrl(item.profiles?.full_name || 'User') }} 
                       style={styles.commentAvatar} 
                     />
                     <View style={styles.commentContent}>
@@ -932,7 +900,7 @@ export default function FeedScreen({ navigation }) {
                           {item.replies.map((reply) => (
                             <View key={reply.id} style={styles.replyItem}>
                               <Image 
-                                source={{ uri: reply.profiles?.avatar_url || generateAvatarUrl(reply.profiles?.full_name || 'User') }} 
+                                source={{ uri: fixImageUrl(reply.profiles?.avatar_url) || generateAvatarUrl(reply.profiles?.full_name || 'User') }} 
                                 style={styles.replyAvatar} 
                               />
                               <View style={styles.replyContent}>
@@ -965,7 +933,7 @@ export default function FeedScreen({ navigation }) {
               <View style={styles.commentInputContainer}>
                 <View style={styles.commentInputWrapper}>
                   <Image 
-                    source={{ uri: currentUserAvatar }} 
+                    source={{ uri: fixImageUrl(currentUserAvatar) }} 
                     style={styles.commentInputAvatar} 
                   />
                   <TextInput
@@ -1002,6 +970,62 @@ export default function FeedScreen({ navigation }) {
             </View>
           </View>
         )}
+
+        {/* Full-Screen Story Viewer Modal */}
+        <Modal
+          visible={storyViewerVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={closeStoryViewer}
+        >
+          <View style={styles.storyViewerContainer}>
+            {/* Close Button */}
+            <TouchableOpacity 
+              style={styles.storyCloseButton}
+              onPress={closeStoryViewer}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="close" size={30} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            {selectedStory && (
+              <>
+                {/* Story Header */}
+                <View style={styles.storyHeader}>
+                  <View style={styles.storyUserInfo}>
+                    {selectedStory.user?.avatar_url ? (
+                      <Image 
+                        source={{ uri: fixImageUrl(selectedStory.user.avatar_url) }} 
+                        style={styles.storyViewerAvatar}
+                      />
+                    ) : (
+                      <View style={styles.storyViewerAvatarPlaceholder}>
+                        <Ionicons name="person" size={20} color="#FFFFFF" />
+                      </View>
+                    )}
+                    <View style={styles.storyUserDetails}>
+                      <Text style={styles.storyViewerName}>{selectedStory.user?.name || 'User'}</Text>
+                      <Text style={styles.storyViewerTime}>
+                        {selectedStory.stories?.[0]?.created_at 
+                          ? getTimeAgo(selectedStory.stories[0].created_at)
+                          : 'Recently'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Story Image */}
+                <View style={styles.storyImageContainer}>
+                  <Image 
+                    source={{ uri: fixImageUrl(selectedStory.stories?.[0]?.image_url) || DEFAULT_STORY_IMAGE }} 
+                    style={styles.storyViewerImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              </>
+            )}
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -2056,6 +2080,84 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: '#8B8B8B',
+  },
+  // Story Viewer Modal Styles
+  storyViewerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  storyCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  storyHeader: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 80,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  storyUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  storyViewerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  storyViewerAvatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#65676B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  storyUserDetails: {
+    marginLeft: 12,
+  },
+  storyViewerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  storyViewerTime: {
+    fontSize: 12,
+    color: '#E4E6EB',
+    marginTop: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  storyImageContainer: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  storyViewerImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

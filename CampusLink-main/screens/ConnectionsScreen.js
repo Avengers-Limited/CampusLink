@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../lib/api';
+import { api, fixImageUrl } from '../lib/api';
 import { generateAvatarUrl } from '../utils/avatarHelper';
 import { COLORS } from '../constants/colors';
 import {
@@ -144,7 +144,7 @@ export default function ConnectionsScreen({ navigation }) {
           activeOpacity={0.7}
         >
           <Image
-            source={{ uri: user.avatar_url || generateAvatarUrl(user.full_name) }}
+            source={{ uri: fixImageUrl(user.avatar_url) || generateAvatarUrl(user.full_name) }}
             style={styles.avatar}
           />
           <View style={styles.userDetails}>
@@ -189,7 +189,7 @@ export default function ConnectionsScreen({ navigation }) {
           activeOpacity={0.7}
         >
           <Image
-            source={{ uri: user.avatar_url || generateAvatarUrl(user.full_name) }}
+            source={{ uri: fixImageUrl(user.avatar_url) || generateAvatarUrl(user.full_name) }}
             style={styles.avatar}
           />
           <View style={styles.userDetails}>

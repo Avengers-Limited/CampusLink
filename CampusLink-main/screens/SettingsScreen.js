@@ -145,6 +145,13 @@ export default function SettingsScreen({ navigation }) {
                 subtitle="Get help with CampusLink"
                 onPress={() => navigation.navigate('HelpSupport')}
               />
+              <View style={styles.divider} />
+              <SettingItem
+                icon="server-outline"
+                title="API Configuration"
+                subtitle="Configure backend server URL"
+                onPress={() => navigation.navigate('ApiConfig')}
+              />
             </View>
           </View>
 

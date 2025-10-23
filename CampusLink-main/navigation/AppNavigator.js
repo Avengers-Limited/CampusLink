@@ -29,6 +29,7 @@ import HelpSupportScreen from '../screens/HelpSupportScreen';
 import PostCreationScreen from '../screens/PostCreationScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import MyPostsScreen from '../screens/MyPostsScreen';
+import ApiConfigScreen from '../screens/ApiConfigScreen';
 import MainTabNavigator from './MainTabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -141,6 +142,7 @@ export default function AppNavigator() {
           <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="MyPosts" component={MyPostsScreen} />
+          <Stack.Screen name="ApiConfig" component={ApiConfigScreen} />
         </Stack.Navigator>
       )}
     </NavigationContainer>

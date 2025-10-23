@@ -6,9 +6,16 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "dev": "nodemon --ignore server-config.json --ignore uploads/ src/server.js",
     "lint": "echo 'No lint configured' && exit 0",
     "test": "node -e \"console.log('No tests yet')\""
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "server-config.json",
+      "uploads/*",
+      "../CampusLink-main/server-config.json"
+    ]
   },
   "engines": {
     "node": ">=18"

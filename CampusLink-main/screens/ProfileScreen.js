@@ -17,7 +17,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../lib/api';
+import { api, fixImageUrl } from '../lib/api';
 import { 
   pickImageFromLibrary, 
   takePhoto, 
@@ -344,7 +344,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.avatarImageContainer}>
                 <Image 
                   source={{ 
-                    uri: profile?.avatar_url || generateAvatarUrl(profile?.full_name || user?.email || 'User')
+                    uri: fixImageUrl(profile?.avatar_url) || generateAvatarUrl(profile?.full_name || user?.email || 'User')
                   }}
                   style={styles.avatarImage}
                   resizeMode="cover"
