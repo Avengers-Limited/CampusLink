@@ -66,10 +66,10 @@ CampusLink is a mobile application designed specifically for university students
 ## 🛠️ Tech Stack
 
 - **Frontend**: React Native with Expo
-- **Backend**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Database**: Supabase PostgreSQL
-- **Storage**: Supabase Storage
+- **Backend**: ExpressJS, NodeJS
+- **Authentication**: JWT Auth
+- **Database**: MongoDB
+- **Storage**: MongoDB, LocalHost
 - **Navigation**: React Navigation v7
 - **State Management**: React Context API
 
